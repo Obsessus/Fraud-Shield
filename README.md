@@ -81,12 +81,13 @@ python -m mypy src
 python -m pytest -q
 
 # Serve
-docker compose up -d            # image: fraud-intel-api:local
+docker compose up -d            # image: fraud-intel-api:latest
 # GET  /health
 # POST /predict  { "transaction_id": "...", "features": { ... } }
 # GET  /metrics  (Prometheus)
 ```
 
-> Requires the IEEE-CIS dataset pulled into `data/raw` and a
-> `dvc pull` (or local run) to populate `data/artifacts`.
+> `dvc repro` needs the IEEE-CIS dataset in `data/raw` (plus a `dvc pull` to
+> populate `data/artifacts`); `docker compose up -d` works without it — the
+> trained model is already baked into the `fraud-intel-api:latest` image.
 
