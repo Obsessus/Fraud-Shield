@@ -1,0 +1,68 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# Data (DVC-tracked, never commit raw/large files)
+data/raw/
+data/interim/
+data/processed/
+data/splits/*.parquet
+*.csv
+!data/splits/*.json
+
+# DVC cache (local remote lives outside repo or in .dvc/cache excluded)
+.dvc/cache/
+storage/
+
+# MLflow
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Env / secrets
+.env
+*.token.json
+kaggle.json
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Local build / run logs (generated during Docker builds and local server runs)
+*.log
+docker_build*.log
+ui_run*.log
+ui_server*.log
+ui_run*.err
+ui_server*.err
+
+# Keep folder skeleton but ignore their contents
+data/*
+!data/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+src/.gitkeep
+tests/.gitkeep
+notebooks/.gitkeep
+scripts/.gitkeep
+docs/.gitkeep
+
+# Allow tracking of explicit .gitkeep placeholders
+!**/.gitkeep
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,37 @@
+# Feature engineering configuration.
+# Each group documents WHY it exists; features are gated by validation PR-AUC.
+feature_groups:
+  transaction_characteristics:
+    enabled: true
+    rationale: "Amount and product context are core fraud signals."
+    columns: [TransactionAMT, ProductCD]
+  temporal_behavior:
+    enabled: true
+    rationale: "Fraud rate varies by time of day/week/month."
+    derive: [month, week, day, hour, day_of_week, is_holiday]
+  frequency_velocity:
+    enabled: true
+    rationale: "Rapid reuse of card/device/email is a classic velocity signal."
+    keys: [card1, addr1, P_emaildomain, DeviceInfo]
+  entity_reuse:
+    enabled: true
+    rationale: "Shared infrastructure across accounts is suspicious."
+  identity_relationships:
+    enabled: true
+    rationale: "Device/identity context separates real vs synthetic sessions."
+  historical_aggregation:
+    enabled: true
+    rationale: "Entity reputation is predictive but MUST be leakage-free (train-only, time-safe)."
+    aggregations: [TransactionAMT_mean, isFraud_rate]
+    time_window_days: 30
+  transaction_context:
+    enabled: true
+    rationale: "Supplied context (C/M/dist) and Vesta V-features; monitored for drift."
+    columns_prefixes: [C, M, V, dist]
+  graph_inspired:
+    enabled: false
+    rationale: "Deferred: simple relational flags only; GNN only if justified later."
+
+# Columns that are identifiers / raw time — never fed directly to the model.
+drop_columns: [TransactionID, TransactionDT]
+target: isFraud

@@ -1,0 +1,150 @@
+stages:
+  download:
+    cmd: python scripts/download_kaggle.py
+    outs:
+      - data/raw/train_transaction.csv
+      - data/raw/train_identity.csv
+      - data/raw/test_transaction.csv
+      - data/raw/test_identity.csv
+  ingest:
+    cmd: python scripts/ingest.py
+    deps:
+      - scripts/ingest.py
+      - src/fraudintel/data/ingest.py
+      - src/fraudintel/data/paths.py
+      - data/raw/train_transaction.csv
+      - data/raw/train_identity.csv
+      - data/raw/test_transaction.csv
+      - data/raw/test_identity.csv
+    outs:
+      - data/interim/train_joined.parquet
+      - data/interim/test_joined.parquet
+  build_features:
+    cmd: python scripts/build_features.py
+    deps:
+      - scripts/build_features.py
+      - src/fraudintel/features/build.py
+      - src/fraudintel/features/__init__.py
+      - src/fraudintel/data/paths.py
+      - data/interim/train_joined.parquet
+      - data/interim/test_joined.parquet
+    outs:
+      - data/processed/train_features.parquet
+      - data/processed/test_features.parquet
+  train_baseline:
+    cmd: python scripts/train_baseline.py
+    deps:
+      - scripts/train_baseline.py
+      - src/fraudintel/features/build.py
+      - src/fraudintel/features/__init__.py
+      - src/fraudintel/models/baseline.py
+      - src/fraudintel/models/__init__.py
+      - src/fraudintel/data/paths.py
+      - configs/training.yaml
+      - data/interim/train_joined.parquet
+      - data/splits/split_manifest.json
+    outs:
+      - data/artifacts/models/baseline_lr.joblib
+      - data/artifacts/models/baseline_metrics.json
+  train_xgboost:
+    cmd: python scripts/train_xgboost.py
+    deps:
+      - scripts/train_xgboost.py
+      - src/fraudintel/models/candidate.py
+      - src/fraudintel/models/__init__.py
+      - src/fraudintel/features/build.py
+      - src/fraudintel/features/__init__.py
+      - src/fraudintel/data/paths.py
+      - configs/training.yaml
+      - data/interim/train_joined.parquet
+      - data/splits/split_manifest.json
+    outs:
+      - data/artifacts/models/xgboost_model.joblib
+      - data/artifacts/models/xgboost_metrics.json
+  compare_models:
+    cmd: python scripts/compare_models.py
+    deps:
+      - scripts/compare_models.py
+      - src/fraudintel/data/paths.py
+      - data/artifacts/models/baseline_metrics.json
+      - data/artifacts/models/xgboost_metrics.json
+    outs:
+      - data/artifacts/models/comparison.json
+  promote_model:
+    cmd: python scripts/promote_model.py
+    deps:
+      - scripts/promote_model.py
+      - src/fraudintel/mlops/selection.py
+      - src/fraudintel/mlops/tracking.py
+      - src/fraudintel/mlops/__init__.py
+      - src/fraudintel/models/baseline.py
+      - src/fraudintel/features/build.py
+      - src/fraudintel/features/__init__.py
+      - src/fraudintel/data/paths.py
+      - configs/thresholds.yaml
+      - data/interim/train_joined.parquet
+      - data/splits/split_manifest.json
+      - data/artifacts/models/xgboost_model.joblib
+      - data/artifacts/models/baseline_metrics.json
+      - data/artifacts/models/xgboost_metrics.json
+    outs:
+      - data/artifacts/models/promotion_report.json
+  explain:
+    cmd: python scripts/compute_explanations.py
+    deps:
+      - scripts/compute_explanations.py
+      - src/fraudintel/explain/shap_explainer.py
+      - src/fraudintel/explain/__init__.py
+      - src/fraudintel/models/baseline.py
+      - src/fraudintel/features/build.py
+      - src/fraudintel/features/__init__.py
+      - src/fraudintel/data/paths.py
+      - data/interim/train_joined.parquet
+      - data/splits/split_manifest.json
+      - data/artifacts/models/xgboost_model.joblib
+    outs:
+      - data/artifacts/explainability/global_shap_importance.json
+      - data/artifacts/explainability/sample_explanations.json
+  drift_check:
+    cmd: python scripts/drift_check.py
+    deps:
+      - scripts/drift_check.py
+      - src/fraudintel/mlops/monitoring.py
+      - src/fraudintel/mlops/__init__.py
+      - src/fraudintel/data/paths.py
+      - data/processed/train_features.parquet
+      - data/processed/test_features.parquet
+    outs:
+      - data/artifacts/monitoring/drift_report.json
+  final_report:
+    cmd: python scripts/build_report.py
+    deps:
+      - scripts/build_report.py
+      - src/fraudintel/data/paths.py
+      - data/artifacts/validation_report.json
+      - data/artifacts/models/comparison.json
+      - data/artifacts/models/xgboost_metrics.json
+      - data/artifacts/models/baseline_metrics.json
+      - data/artifacts/models/promotion_report.json
+      - data/artifacts/explainability/global_shap_importance.json
+      - data/artifacts/monitoring/drift_report.json
+      - data/splits/split_manifest.json
+    outs:
+      - data/artifacts/final_evaluation.json
+      - data/artifacts/final_evaluation.md
+  ui_sample:
+    cmd: python scripts/make_ui_sample.py
+    deps:
+      - scripts/make_ui_sample.py
+      - src/fraudintel/data/paths.py
+      - data/processed/train_features.parquet
+    outs:
+      - data/artifacts/ui/sample_features.parquet
+  feature_history:
+    cmd: python scripts/build_feature_history.py
+    deps:
+      - scripts/build_feature_history.py
+      - src/fraudintel/data/paths.py
+      - data/processed/train_features.parquet
+    outs:
+      - data/artifacts/ui/feature_history.parquet

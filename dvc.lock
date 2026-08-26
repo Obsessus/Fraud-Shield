@@ -1,0 +1,417 @@
+schema: '2.0'
+stages:
+  download:
+    cmd: python scripts/download_kaggle.py
+    outs:
+    - path: data/raw/test_identity.csv
+      hash: md5
+      md5: 54ae784303f82e5cadeb2d899b05c6a8
+      size: 25797161
+    - path: data/raw/test_transaction.csv
+      hash: md5
+      md5: 7ea6862ef4e078efb309e19fa49178fd
+      size: 613194934
+    - path: data/raw/train_identity.csv
+      hash: md5
+      md5: 8487db5001c8bad139f3318d5d3db416
+      size: 26529680
+    - path: data/raw/train_transaction.csv
+      hash: md5
+      md5: 58b4038d8715f5e11007b826bef00ce7
+      size: 683351067
+  ingest:
+    cmd: python scripts/ingest.py
+    deps:
+    - path: data/raw/test_identity.csv
+      hash: md5
+      md5: 54ae784303f82e5cadeb2d899b05c6a8
+      size: 25797161
+    - path: data/raw/test_transaction.csv
+      hash: md5
+      md5: 7ea6862ef4e078efb309e19fa49178fd
+      size: 613194934
+    - path: data/raw/train_identity.csv
+      hash: md5
+      md5: 8487db5001c8bad139f3318d5d3db416
+      size: 26529680
+    - path: data/raw/train_transaction.csv
+      hash: md5
+      md5: 58b4038d8715f5e11007b826bef00ce7
+      size: 683351067
+    - path: scripts/ingest.py
+      hash: md5
+      md5: b27875c23a18e6502b77891711a2a1cd
+      size: 540
+    - path: src/fraudintel/data/ingest.py
+      hash: md5
+      md5: 90904a4bb519f748a5747583a6ccf84e
+      size: 2762
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    outs:
+    - path: data/interim/test_joined.parquet
+      hash: md5
+      md5: e72cdf1e5f60d55239912d1b57e52a32
+      size: 73691080
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+  build_features:
+    cmd: python scripts/build_features.py
+    deps:
+    - path: data/interim/test_joined.parquet
+      hash: md5
+      md5: e72cdf1e5f60d55239912d1b57e52a32
+      size: 73691080
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+    - path: scripts/build_features.py
+      hash: md5
+      md5: cbbf4306ec07032bd08f358b1245805d
+      size: 1243
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/features/__init__.py
+      hash: md5
+      md5: 5aa423d6849ef4888476bdd809a576b0
+      size: 56
+    - path: src/fraudintel/features/build.py
+      hash: md5
+      md5: f4984c8cdbe4510787077d98cf14a558
+      size: 7463
+    outs:
+    - path: data/processed/test_features.parquet
+      hash: md5
+      md5: 36527bb0f7db2916cad1cc1843728701
+      size: 81470901
+    - path: data/processed/train_features.parquet
+      hash: md5
+      md5: e17efa818c7276a76016a06abefe68d6
+      size: 119956180
+  train_baseline:
+    cmd: python scripts/train_baseline.py
+    deps:
+    - path: configs/training.yaml
+      hash: md5
+      md5: d579af83aa276a41895ca50571fe532d
+      size: 935
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+    - path: data/splits/split_manifest.json
+      hash: md5
+      md5: f8121b6f237a47241d115f5a44e5c9d5
+      size: 761
+    - path: scripts/train_baseline.py
+      hash: md5
+      md5: 97fd2f2331ecf18e82246e700c284bd8
+      size: 3061
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/features/__init__.py
+      hash: md5
+      md5: 5aa423d6849ef4888476bdd809a576b0
+      size: 56
+    - path: src/fraudintel/features/build.py
+      hash: md5
+      md5: f4984c8cdbe4510787077d98cf14a558
+      size: 7463
+    - path: src/fraudintel/models/__init__.py
+      hash: md5
+      md5: ab4b9bdcb3e528bc4e8883e8dc0e9206
+      size: 410
+    - path: src/fraudintel/models/baseline.py
+      hash: md5
+      md5: 1f75b9cb39537dc250ddedf03acae1ee
+      size: 2747
+    outs:
+    - path: data/artifacts/models/baseline_lr.joblib
+      hash: md5
+      md5: 86f0545b21fe5f9ea1c12807449d3dce
+      size: 17934
+    - path: data/artifacts/models/baseline_metrics.json
+      hash: md5
+      md5: 50d93d8de3e8080d6d7dca5bfa9b1a8d
+      size: 602
+  train_xgboost:
+    cmd: python scripts/train_xgboost.py
+    deps:
+    - path: configs/training.yaml
+      hash: md5
+      md5: d579af83aa276a41895ca50571fe532d
+      size: 935
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+    - path: data/splits/split_manifest.json
+      hash: md5
+      md5: f8121b6f237a47241d115f5a44e5c9d5
+      size: 761
+    - path: scripts/train_xgboost.py
+      hash: md5
+      md5: 324021415c16b770d29aba169077e8a0
+      size: 2949
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/features/__init__.py
+      hash: md5
+      md5: 5aa423d6849ef4888476bdd809a576b0
+      size: 56
+    - path: src/fraudintel/features/build.py
+      hash: md5
+      md5: f4984c8cdbe4510787077d98cf14a558
+      size: 7463
+    - path: src/fraudintel/models/__init__.py
+      hash: md5
+      md5: ab4b9bdcb3e528bc4e8883e8dc0e9206
+      size: 410
+    - path: src/fraudintel/models/candidate.py
+      hash: md5
+      md5: ddafd65084bbb8a3d5125da9f578a075
+      size: 1990
+    outs:
+    - path: data/artifacts/models/xgboost_metrics.json
+      hash: md5
+      md5: f575f0dbe8110ee19e4ec9770c1191c5
+      size: 767
+    - path: data/artifacts/models/xgboost_model.joblib
+      hash: md5
+      md5: a601d52548ee0452f82db968f6c75c50
+      size: 4191650
+  compare_models:
+    cmd: python scripts/compare_models.py
+    deps:
+    - path: data/artifacts/models/baseline_metrics.json
+      hash: md5
+      md5: 50d93d8de3e8080d6d7dca5bfa9b1a8d
+      size: 602
+    - path: data/artifacts/models/xgboost_metrics.json
+      hash: md5
+      md5: f575f0dbe8110ee19e4ec9770c1191c5
+      size: 767
+    - path: scripts/compare_models.py
+      hash: md5
+      md5: cc416d139e6f7613b8791cbe33ae34c6
+      size: 2242
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    outs:
+    - path: data/artifacts/models/comparison.json
+      hash: md5
+      md5: f04f4ec7b9b3562004a1c2661222cdb8
+      size: 1328
+  promote_model:
+    cmd: python scripts/promote_model.py
+    deps:
+    - path: configs/thresholds.yaml
+      hash: md5
+      md5: 4504674dd691de57944a48638c650a91
+      size: 1394
+    - path: data/artifacts/models/baseline_metrics.json
+      hash: md5
+      md5: 50d93d8de3e8080d6d7dca5bfa9b1a8d
+      size: 602
+    - path: data/artifacts/models/xgboost_metrics.json
+      hash: md5
+      md5: f575f0dbe8110ee19e4ec9770c1191c5
+      size: 767
+    - path: data/artifacts/models/xgboost_model.joblib
+      hash: md5
+      md5: a601d52548ee0452f82db968f6c75c50
+      size: 4191650
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+    - path: data/splits/split_manifest.json
+      hash: md5
+      md5: f8121b6f237a47241d115f5a44e5c9d5
+      size: 761
+    - path: scripts/promote_model.py
+      hash: md5
+      md5: 1c716f98a02c4e7f919ab591507e850e
+      size: 5984
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/features/__init__.py
+      hash: md5
+      md5: 5aa423d6849ef4888476bdd809a576b0
+      size: 56
+    - path: src/fraudintel/features/build.py
+      hash: md5
+      md5: f4984c8cdbe4510787077d98cf14a558
+      size: 7463
+    - path: src/fraudintel/mlops/__init__.py
+      hash: md5
+      md5: ab69239b48a5302c03942f70e271afc2
+      size: 567
+    - path: src/fraudintel/mlops/selection.py
+      hash: md5
+      md5: 3e373fece2dfabb77419db1dcabfe443
+      size: 5031
+    - path: src/fraudintel/mlops/tracking.py
+      hash: md5
+      md5: 06dd172fa107f990398782a05d100006
+      size: 2924
+    - path: src/fraudintel/models/baseline.py
+      hash: md5
+      md5: 1f75b9cb39537dc250ddedf03acae1ee
+      size: 2747
+    outs:
+    - path: data/artifacts/models/promotion_report.json
+      hash: md5
+      md5: a653577d130c92a27c3f6791e6e21900
+      size: 2498
+  explain:
+    cmd: python scripts/compute_explanations.py
+    deps:
+    - path: data/artifacts/models/xgboost_model.joblib
+      hash: md5
+      md5: a601d52548ee0452f82db968f6c75c50
+      size: 4191650
+    - path: data/interim/train_joined.parquet
+      hash: md5
+      md5: 8bf439a5ea285d63df29ff22ddb7f048
+      size: 84743552
+    - path: data/splits/split_manifest.json
+      hash: md5
+      md5: f8121b6f237a47241d115f5a44e5c9d5
+      size: 761
+    - path: scripts/compute_explanations.py
+      hash: md5
+      md5: dd3c379d48a8067e96f6263397f13f9f
+      size: 2845
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/explain/__init__.py
+      hash: md5
+      md5: 5937d621a57619a21bab539189a35b45
+      size: 174
+    - path: src/fraudintel/explain/shap_explainer.py
+      hash: md5
+      md5: 9e7c3a595d77b92ec461a6c925136730
+      size: 2786
+    - path: src/fraudintel/features/__init__.py
+      hash: md5
+      md5: 5aa423d6849ef4888476bdd809a576b0
+      size: 56
+    - path: src/fraudintel/features/build.py
+      hash: md5
+      md5: f4984c8cdbe4510787077d98cf14a558
+      size: 7463
+    - path: src/fraudintel/models/baseline.py
+      hash: md5
+      md5: 1f75b9cb39537dc250ddedf03acae1ee
+      size: 2747
+    outs:
+    - path: data/artifacts/explainability/global_shap_importance.json
+      hash: md5
+      md5: f5c38388498b286a1748a566ffbfd864
+      size: 2648
+    - path: data/artifacts/explainability/sample_explanations.json
+      hash: md5
+      md5: c20af59b58d005bc3dcb461fafec286c
+      size: 7601
+  drift_check:
+    cmd: python scripts/drift_check.py
+    deps:
+    - path: data/processed/test_features.parquet
+      hash: md5
+      md5: 36527bb0f7db2916cad1cc1843728701
+      size: 81470901
+    - path: data/processed/train_features.parquet
+      hash: md5
+      md5: e17efa818c7276a76016a06abefe68d6
+      size: 119956180
+    - path: scripts/drift_check.py
+      hash: md5
+      md5: e82b20536dab0ab50e6265035891d515
+      size: 1770
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    - path: src/fraudintel/mlops/__init__.py
+      hash: md5
+      md5: ab69239b48a5302c03942f70e271afc2
+      size: 567
+    - path: src/fraudintel/mlops/monitoring.py
+      hash: md5
+      md5: d82f92bf4ef9a597ca4a12577b220636
+      size: 2153
+    outs:
+    - path: data/artifacts/monitoring/drift_report.json
+      hash: md5
+      md5: 3c667fca1ba20321dac259bdc7d780cb
+      size: 28522
+  final_report:
+    cmd: python scripts/build_report.py
+    deps:
+    - path: data/artifacts/explainability/global_shap_importance.json
+      hash: md5
+      md5: f5c38388498b286a1748a566ffbfd864
+      size: 2648
+    - path: data/artifacts/models/baseline_metrics.json
+      hash: md5
+      md5: 50d93d8de3e8080d6d7dca5bfa9b1a8d
+      size: 602
+    - path: data/artifacts/models/comparison.json
+      hash: md5
+      md5: f04f4ec7b9b3562004a1c2661222cdb8
+      size: 1328
+    - path: data/artifacts/models/promotion_report.json
+      hash: md5
+      md5: a653577d130c92a27c3f6791e6e21900
+      size: 2498
+    - path: data/artifacts/models/xgboost_metrics.json
+      hash: md5
+      md5: f575f0dbe8110ee19e4ec9770c1191c5
+      size: 767
+    - path: data/artifacts/monitoring/drift_report.json
+      hash: md5
+      md5: 3c667fca1ba20321dac259bdc7d780cb
+      size: 28522
+    - path: data/artifacts/validation_report.json
+      hash: md5
+      md5: 6541cf9797b6faa77fa9add055d730a2
+      size: 393
+    - path: data/splits/split_manifest.json
+      hash: md5
+      md5: f8121b6f237a47241d115f5a44e5c9d5
+      size: 761
+    - path: scripts/build_report.py
+      hash: md5
+      md5: 893436e96c90ecce5a7efde5212eb9c2
+      size: 10003
+    - path: src/fraudintel/data/paths.py
+      hash: md5
+      md5: 37e3ec8f2543fd46a5cbb65bc527f268
+      size: 776
+    outs:
+    - path: data/artifacts/final_evaluation.json
+      hash: md5
+      md5: dffe2c8787ea27f1b4e8d7e46857e881
+      size: 8264
+    - path: data/artifacts/final_evaluation.md
+      hash: md5
+      md5: 2297d1888836f713c95b0a2275af6e4c
+      size: 3242

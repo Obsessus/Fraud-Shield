@@ -1,0 +1,18 @@
+# Keep the build context small: exclude large raw/interim/processed data, the venv,
+# git, caches, and exploration notebooks. Model artifacts under data/artifacts are
+# needed at runtime and are therefore NOT excluded.
+.venv/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+mlruns/
+notebooks/
+data/raw/
+data/interim/
+data/processed/
+*.csv
+*.parquet

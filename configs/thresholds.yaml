@@ -1,0 +1,22 @@
+# Operational decision thresholds (initial placeholders; tuned in Stage 4).
+# Bands convert a fraud risk score p in [0,1] into an action.
+# These values are placeholders until the threshold study on validation data.
+decision_bands:
+  low_risk_max: 0.20      # p <= 0.20  -> LOW RISK (allow)
+  review_max: 0.80        # 0.20 < p <= 0.80 -> REVIEW
+  # p > 0.80 -> HIGH RISK (block)
+
+# Promotion gate (candidate -> production). Set after the Stage 10 threshold study.
+# Rationale (initial ops targets, to be tuned with fraud operations):
+#   - Alerting is manual-review-cost sensitive, so precision floors matter, but we still
+#     must catch a meaningful share of fraud (recall floor).
+#   - Slice checks guard against the model winning on average while failing a sub-population.
+promotion:
+  primary_metric: pr_auc
+  operating_threshold_policy: f1        # choose operating point by max F1 on validation
+  min_pr_auc_improvement: 0.0           # candidate must strictly beat baseline hold-out PR-AUC
+  min_precision: 0.10                   # hold-out precision floor at the operating threshold
+  min_recall: 0.20                      # hold-out recall floor at the operating threshold
+  require_slice_checks: true
+  slice_pr_auc_floor: 0.05              # each key slice must reach at least this PR-AUC
+  slice_min_positives: 20               # slices with fewer fraud positives are not judged
