@@ -61,9 +61,8 @@ Pydantic · Docker · GitHub Actions · Evidently · Prometheus
 - Reproducible **model card** (`scripts/build_report.py` →
   `data/artifacts/final_evaluation.md`)
 
-See `DESIGN.md` / `ARCHITECTURE.md` for design, `ROADMAP.md` for stage history,
-`DECISIONS.md` for the decision log, and `docs/final_report.md` for the evaluation
-writeup.
+See `ARCHITECTURE.md` for the system design and `docs/final_report.md` for the
+evaluation writeup.
 
 ## Quickstart
 
@@ -88,6 +87,6 @@ docker compose up -d            # image: fraud-intel-api:local
 # GET  /metrics  (Prometheus)
 ```
 
-> Requires the IEEE-CIS dataset pulled into `data/raw` (see `DESIGN.md`) and a
+> Requires the IEEE-CIS dataset pulled into `data/raw` and a
 > `dvc pull` (or local run) to populate `data/artifacts`.
 

@@ -77,7 +77,7 @@ decision, model version, explanation. No internal implementation details exposed
 
 MLflow tracks: dataset version, feature config, model type, hyperparameters, validation
 strategy, metrics, threshold, artifacts, model version. Promotion gate beyond "best
-score" (see `DECISIONS.md`).
+score".
 
 ## Monitoring requirement
 

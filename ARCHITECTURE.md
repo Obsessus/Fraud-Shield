@@ -92,4 +92,4 @@ flowchart LR
 - **Prometheus** for system metrics: pull-based, minimal, pairs with `/metrics`.
 - **Docker + PaaS** (no K8s): simplest deploy satisfying requirements.
 
-See `DECISIONS.md` for the rationale behind each choice.
+Each choice above is driven directly by the requirements in `PROJECT_SPEC.md`.
