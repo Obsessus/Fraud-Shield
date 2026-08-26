@@ -1,0 +1,13 @@
+# Render Blueprint — Fraud Shield inference service
+#
+# Connect this repo in Render and choose "Render Blueprint" (or create a Web
+# Service manually pointing at deploy/render/Dockerfile). Render builds the
+# thin image above (which pulls the public base image) and serves it.
+services:
+  - type: web
+    name: fraud-shield
+    dockerfilePath: ./deploy/render/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
