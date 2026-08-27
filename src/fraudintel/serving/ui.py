@@ -41,12 +41,13 @@ UI_HTML = """<!DOCTYPE html>
   ul.factors li { font-size:13px; margin:4px 0; }
   .hint { color:var(--muted); font-size:12px; margin-top:10px; }
   code { background:#0b1220; padding:2px 6px; border-radius:5px; }
+  details.card summary { cursor:pointer; font-weight:600; padding:4px 0; }
 </style>
 </head>
 <body>
 <header>
   <h1>Fraud Intelligence Platform</h1>
-  <p>Load a real transaction, tweak its values, and ask the model to score it for fraud.</p>
+  <p>Load a real transaction, tweak its values, and ask the model to score it for fraud. Hover any term for a plain-English meaning, or open &ldquo;What do these terms mean?&rdquo; below.</p>
 </header>
 <main>
   <div class="card">
@@ -67,9 +68,10 @@ UI_HTML = """<!DOCTYPE html>
     <div id="verdict" class="verdict">—</div>
     <div id="verdictMeta" class="meta"></div>
     <div id="agreement" class="meta"></div>
-    <div class="hint">Top risk factors (SHAP contributions):</div>
-    <ul id="factors" class="factors"></ul>
-  </div>
+    <div class="hint">Top risk factors &mdash; the transaction details that most increased (fraud-like) or decreased (normal-like) the score:</div>
+     <ul id="factors" class="factors"></ul>
+     <div class="hint">If the score is at or above the threshold, the transaction is flagged for review. &ldquo;Actual&rdquo; (when shown) is the true label from the original data.</div>
+   </div>
 
   <div id="demoCard" class="card" style="display:none">
     <div class="row">
@@ -81,9 +83,9 @@ UI_HTML = """<!DOCTYPE html>
       fields and watch the model's historical-aggregate features get recomputed <em>live</em> from the
       training history (exactly how the offline feature store would), then re-score the transaction.</div>
     <div class="grid">
-      <label class="field"><span>card1 (raw identity)</span><input id="dCard1" type="number" step="any" /></label>
-      <label class="field"><span>addr1 (raw identity)</span><input id="dAddr1" type="number" step="any" /></label>
-      <label class="field"><span>TransactionAmt (raw amount)</span><input id="dAmt" type="number" step="any" /></label>
+      <label class="field"><span title="Anonymous ID of the payment card used (not the real card number)">card1 — payment-card ID</span><input id="dCard1" type="number" step="any" /></label>
+      <label class="field"><span title="Anonymous ID of the cardholder's address">addr1 — address ID</span><input id="dAddr1" type="number" step="any" /></label>
+      <label class="field"><span title="The transaction amount in US dollars">TransactionAmt — amount (USD)</span><input id="dAmt" type="number" step="any" /></label>
     </div>
     <div id="demoResult" class="card" style="display:none; margin-top:14px">
       <div id="demoVerdict" class="verdict">—</div>
@@ -92,12 +94,44 @@ UI_HTML = """<!DOCTYPE html>
       <ul id="demoDerivation" class="factors"></ul>
     </div>
   </div>
+
+  <details class="card">
+    <summary>What do these terms mean? (plain English)</summary>
+    <ul class="factors">
+      <li><b>card1</b> &mdash; an anonymous ID for the payment card (never the real card number).</li>
+      <li><b>addr1</b> &mdash; an anonymous ID for the customer's address.</li>
+      <li><b>TransactionAmt</b> &mdash; the transaction amount in US dollars.</li>
+      <li><b>TransactionDT</b> &mdash; time passed (from a fixed start date) before this transaction; fraud behavior changes over time.</li>
+      <li><b>C1 / C2</b> &mdash; counts of recent transactions with similar card / identity traits.</li>
+      <li><b>D1&ndash;D6</b> &mdash; time gaps (in days) between this transaction and key events such as when the card was first seen.</li>
+      <li><b>Risk score</b> &mdash; a 0&ndash;1 estimate of how likely this transaction is fraud (higher = more suspicious).</li>
+      <li><b>Threshold</b> &mdash; the cutoff score above which a transaction is flagged for review.</li>
+      <li><b>Top risk factors</b> &mdash; the specific details that pushed the score up (fraud-like) or down (normal-like).</li>
+      <li><b>FRAUD RISK / CLEAN</b> &mdash; the verdict: flagged for human review, or considered normal.</li>
+    </ul>
+  </details>
 </main>
 
 <script>
 const state = { features: {}, label: null, tid: null };
 
 function setText(id, t) { document.getElementById(id).textContent = t; }
+
+const GLOSSARY = {
+  card1: "Anonymous ID of the payment card used (never the real card number).",
+  addr1: "Anonymous ID of the cardholder's address.",
+  TransactionAmt: "The transaction amount in US dollars.",
+  TransactionDT: "Time elapsed (from a fixed start date) before this transaction; fraud behavior shifts over time.",
+  ProductCD: "The product category being purchased.",
+  C1: "Count of recent transactions with similar card traits.",
+  C2: "Count of recent transactions with similar identity traits.",
+  D1: "Days between this transaction and a key event (e.g., card first seen).",
+  D2: "Days between this transaction and a key event (e.g., address first seen).",
+  D3: "Days between this transaction and a key event (e.g., email/domain change).",
+  D4: "Days between this transaction and a key event (e.g., phone change).",
+  D5: "Days between this transaction and a key event (e.g., card type change).",
+  D6: "Days between this transaction and a key event (e.g., address change)."
+};
 
 function renderFields(names, values) {
   const box = document.getElementById('fields');
@@ -107,6 +141,7 @@ function renderFields(names, values) {
     lab.className = 'field';
     const span = document.createElement('span');
     span.textContent = name;
+    if (GLOSSARY[name]) { span.title = GLOSSARY[name]; span.style.cursor = 'help'; }
     const inp = document.createElement('input');
     inp.type = 'number'; inp.step = 'any';
     inp.value = (values[name] !== undefined && values[name] !== null) ? values[name] : 0;
