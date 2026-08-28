@@ -50,14 +50,7 @@ docker compose up -d
 ```
 The trained model is baked into the image, so you don't need the dataset to run the service.
 (`dvc repro` will rebuild the whole pipeline if you do have the data.) See `ARCHITECTURE.md` for
-the full design.
-
-## Honest caveats
-- This is a portfolio piece, not a production fraud system — the demo recomputes features
-  in-process rather than hitting a real feature store.
-- Class imbalance means false positives vs. false negatives is a genuine tradeoff; 0.798 is a
-  chosen operating point, not a universal answer.
-- Monitoring is wired up but minimal — enough to show the shape of it.
+ the full design.
 
 ## Stack
 Python 3.11 · pandas · scikit-learn · XGBoost · MLflow · DVC · FastAPI · Docker · Prometheus · Evidently
